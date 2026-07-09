@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Interactive quantum computing simulation platform — explore qubits, quantum gates, superposition, entanglement, and quantum circuits through stunning visual demos." />
+  <title>Quantum Simulator — Explore the Quantum World</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- ===== Navbar ===== -->
+  <nav id="navbar" class="navbar">
+    <div class="nav-brand">
+      <span class="nav-logo">⚛</span>
+      <span class="nav-title">QuantumSim</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#hero" class="nav-link active">Home</a></li>
+      <li><a href="#bloch" class="nav-link">Bloch Sphere</a></li>
+      <li><a href="#gates" class="nav-link">Gates</a></li>
+      <li><a href="#superposition" class="nav-link">Superposition</a></li>
+      <li><a href="#entanglement" class="nav-link">Entanglement</a></li>
+      <li><a href="#circuit" class="nav-link">Circuit</a></li>
+      <li><a href="forum.html" class="nav-link forum-nav-link">🗨️ Forum</a></li>
+    </ul>
+    <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- ===== Hero ===== -->
+  <section id="hero" class="section hero-section">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-content">
+      <h1 class="hero-title">Explore the <span class="gradient-text">Quantum World</span></h1>
+      <p class="hero-subtitle">An interactive journey through the foundations of quantum computing — visualize qubits, gates, superposition, entanglement, and circuits.</p>
+      <a href="#bloch" class="btn btn-primary hero-cta">Start Exploring <span class="btn-arrow">→</span></a>
+    </div>
+    <div class="scroll-indicator">
+      <div class="scroll-mouse"><div class="scroll-wheel"></div></div>
+      <span>Scroll to explore</span>
+    </div>
+  </section>
+
+  <!-- ===== Bloch Sphere ===== -->
+  <section id="bloch" class="section">
+    <div class="section-header">
+      <span class="section-tag">01</span>
+      <h2 class="section-title">Qubit &amp; <span class="gradient-text">Bloch Sphere</span></h2>
+      <p class="section-desc">A qubit's state lives on the surface of the Bloch sphere. Adjust θ and φ to see how the state vector moves.</p>
+    </div>
+    <div class="bloch-container" id="bloch-container"></div>
+  </section>
+
+  <!-- ===== Gates Simulator ===== -->
+  <section id="gates" class="section">
+    <div class="section-header">
+      <span class="section-tag">02</span>
+      <h2 class="section-title">Quantum <span class="gradient-text">Gates</span></h2>
+      <p class="section-desc">Apply quantum gates to a qubit and watch its state transform in real time. Chain multiple gates to build complex operations.</p>
+    </div>
+    <div class="gates-container" id="gates-container"></div>
+  </section>
+
+  <!-- ===== Superposition ===== -->
+  <section id="superposition" class="section">
+    <div class="section-header">
+      <span class="section-tag">03</span>
+      <h2 class="section-title">Superposition &amp; <span class="gradient-text">Measurement</span></h2>
+      <p class="section-desc">A qubit in superposition is like a spinning coin — it exists in both states until measured. Run many measurements to see probability in action.</p>
+    </div>
+    <div class="superposition-container" id="superposition-container"></div>
+  </section>
+
+  <!-- ===== Entanglement ===== -->
+  <section id="entanglement" class="section">
+    <div class="section-header">
+      <span class="section-tag">04</span>
+      <h2 class="section-title">Quantum <span class="gradient-text">Entanglement</span></h2>
+      <p class="section-desc">Entangled qubits are mysteriously linked — measuring one instantly determines the other, no matter the distance.</p>
+    </div>
+    <div class="entanglement-container" id="entanglement-container"></div>
+  </section>
+
+  <!-- ===== Circuit Builder ===== -->
+  <section id="circuit" class="section">
+    <div class="section-header">
+      <span class="section-tag">05</span>
+      <h2 class="section-title">Quantum <span class="gradient-text">Circuit Builder</span></h2>
+      <p class="section-desc">Build your own quantum circuit! Place gates on qubits and run the simulation to see the output state and probabilities.</p>
+    </div>
+    <div class="circuit-container" id="circuit-container"></div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer id="footer" class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <span class="nav-logo">⚛</span>
+        <span class="nav-title">QuantumSim</span>
+        <p class="footer-tagline">Making quantum computing accessible through interactive visualization.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Explore</h4>
+        <a href="#bloch">Bloch Sphere</a>
+        <a href="#gates">Quantum Gates</a>
+        <a href="#superposition">Superposition</a>
+        <a href="#entanglement">Entanglement</a>
+        <a href="#circuit">Circuit Builder</a>
+      </div>
+      <div class="footer-links">
+        <h4>Learn More</h4>
+        <a href="https://en.wikipedia.org/wiki/Quantum_computing" target="_blank" rel="noopener">Wikipedia</a>
+        <a href="https://qiskit.org/learn" target="_blank" rel="noopener">Qiskit Textbook</a>
+        <a href="https://quantum.country/" target="_blank" rel="noopener">Quantum Country</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 QuantumSim — Interactive Quantum Computing Education</p>
+    </div>
+  </footer>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

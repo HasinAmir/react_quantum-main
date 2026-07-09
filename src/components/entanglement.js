@@ -1,0 +1,178 @@
+/**
+ * Quantum Entanglement Visualizer
+ */
+import { bellState, measureMulti, Complex } from '../utils/quantumMath.js';
+
+export function initEntanglement() {
+  const container = document.getElementById('entanglement-container');
+  if (!container) return;
+
+  let currentBell = 'Φ+';
+  let state = bellState(currentBell);
+  let measurements = [];
+  let counts = { '00': 0, '01': 0, '10': 0, '11': 0 };
+
+  container.innerHTML = `
+    <div class="ent-visual glass-card">
+      <h3 style="font-family:var(--font-heading);font-size:20px;">Entangled Qubits</h3>
+      <p style="font-size:13px;color:var(--text-muted);max-width:340px;text-align:center;margin-bottom:8px;">
+        Two entangled qubits share a mysterious connection. Measuring one instantly determines the other.
+      </p>
+      <div class="ent-qubits">
+        <div class="ent-qubit qubit-a" id="ent-qa">?</div>
+        <div class="ent-link" id="ent-link">⟷</div>
+        <div class="ent-qubit qubit-b" id="ent-qb">?</div>
+      </div>
+      <div style="display:flex;gap:8px;font-size:13px;color:var(--text-muted);">
+        <span>Qubit A</span>
+        <span style="flex:1;"></span>
+        <span>Qubit B</span>
+      </div>
+      <div class="state-display" id="ent-state" style="font-size:15px;width:100%;">
+        |${currentBell}⟩ — Click a qubit to measure!
+      </div>
+      <div style="display:flex;gap:8px;width:100%;">
+        <button class="btn btn-primary" id="ent-measure" style="flex:1;justify-content:center;padding:12px 20px;font-size:14px;">
+          Measure Both
+        </button>
+        <button class="btn-sm" id="ent-reset">Reset</button>
+      </div>
+    </div>
+    <div class="ent-controls glass-card">
+      <h3 style="font-family:var(--font-heading);font-size:20px;margin-bottom:8px;">Bell State Selector</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">
+        Choose different entangled states and observe their measurement correlations.
+      </p>
+      <div class="bell-states">
+        <button class="btn-sm active" data-bell="Φ+">|Φ+⟩</button>
+        <button class="btn-sm" data-bell="Φ-">|Φ−⟩</button>
+        <button class="btn-sm" data-bell="Ψ+">|Ψ+⟩</button>
+        <button class="btn-sm" data-bell="Ψ-">|Ψ−⟩</button>
+      </div>
+      <div style="margin-top:16px;">
+        <h4 style="font-size:14px;color:var(--text-secondary);margin-bottom:8px;">Batch Measurements</h4>
+        <div class="slider-group">
+          <div class="slider-label"><span>Count</span><span id="ent-batch-val">100</span></div>
+          <input type="range" id="ent-batch" min="10" max="1000" step="10" value="100" />
+        </div>
+        <button class="btn-sm" id="ent-run-batch" style="width:100%;text-align:center;margin-top:8px;">
+          Run Batch Measurement
+        </button>
+      </div>
+      <div style="margin-top:16px;">
+        <h4 style="font-size:14px;color:var(--text-secondary);margin-bottom:8px;">Correlation Table</h4>
+        <table class="correlation-table">
+          <thead>
+            <tr><th>Outcome</th><th>Count</th><th>Probability</th></tr>
+          </thead>
+          <tbody id="corr-tbody">
+            <tr><td>|00⟩</td><td id="c-00">0</td><td id="p-00">—</td></tr>
+            <tr><td>|01⟩</td><td id="c-01">0</td><td id="p-01">—</td></tr>
+            <tr><td>|10⟩</td><td id="c-10">0</td><td id="p-10">—</td></tr>
+            <tr><td>|11⟩</td><td id="c-11">0</td><td id="p-11">—</td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:8px;font-size:12px;color:var(--text-muted);text-align:center;">
+          Total: <span id="ent-total" style="color:var(--accent-cyan);font-family:var(--font-mono);">0</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const qa = document.getElementById('ent-qa');
+  const qb = document.getElementById('ent-qb');
+  const link = document.getElementById('ent-link');
+  const stateEl = document.getElementById('ent-state');
+  const batchSlider = document.getElementById('ent-batch');
+  const batchVal = document.getElementById('ent-batch-val');
+
+  function updateTable() {
+    const total = counts['00'] + counts['01'] + counts['10'] + counts['11'];
+    for (const k of ['00', '01', '10', '11']) {
+      document.getElementById(`c-${k}`).textContent = counts[k];
+      document.getElementById(`p-${k}`).textContent = total > 0
+        ? `${(counts[k] / total * 100).toFixed(1)}%` : '—';
+    }
+    document.getElementById('ent-total').textContent = total;
+  }
+
+  function doMeasure() {
+    state = bellState(currentBell);
+    const result = measureMulti(state);
+    const a = (result >> 1) & 1;
+    const b = result & 1;
+
+    qa.textContent = a;
+    qb.textContent = b;
+    qa.classList.add('measured');
+    qb.classList.add('measured');
+    setTimeout(() => { qa.classList.remove('measured'); qb.classList.remove('measured'); }, 500);
+
+    const key = `${a}${b}`;
+    counts[key]++;
+    updateTable();
+
+    stateEl.textContent = `Measured: |${a}${b}⟩`;
+    stateEl.style.color = 'var(--accent-green)';
+    link.textContent = '⚡';
+    link.style.color = 'var(--accent-green)';
+    setTimeout(() => { link.textContent = '⟷'; link.style.color = ''; }, 600);
+  }
+
+  function reset() {
+    qa.textContent = '?';
+    qb.textContent = '?';
+    state = bellState(currentBell);
+    stateEl.textContent = `|${currentBell}⟩ — Click a qubit to measure!`;
+    stateEl.style.color = 'var(--accent-cyan)';
+    link.textContent = '⟷';
+    link.style.color = '';
+  }
+
+  // Measure button
+  document.getElementById('ent-measure').addEventListener('click', doMeasure);
+  qa.addEventListener('click', doMeasure);
+  qb.addEventListener('click', doMeasure);
+
+  // Reset
+  document.getElementById('ent-reset').addEventListener('click', () => {
+    counts = { '00': 0, '01': 0, '10': 0, '11': 0 };
+    updateTable();
+    reset();
+  });
+
+  // Bell state buttons
+  container.querySelectorAll('[data-bell]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('[data-bell]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentBell = btn.dataset.bell;
+      counts = { '00': 0, '01': 0, '10': 0, '11': 0 };
+      updateTable();
+      reset();
+    });
+  });
+
+  // Batch slider
+  batchSlider.addEventListener('input', (e) => { batchVal.textContent = e.target.value; });
+
+  // Batch measurement
+  document.getElementById('ent-run-batch').addEventListener('click', () => {
+    const n = parseInt(batchSlider.value);
+    for (let i = 0; i < n; i++) {
+      const st = bellState(currentBell);
+      const result = measureMulti(st);
+      const a = (result >> 1) & 1;
+      const b = result & 1;
+      counts[`${a}${b}`]++;
+    }
+    updateTable();
+    // Show last result
+    const lastSt = bellState(currentBell);
+    const lastR = measureMulti(lastSt);
+    qa.textContent = (lastR >> 1) & 1;
+    qb.textContent = lastR & 1;
+    stateEl.textContent = `Batch complete — ${n} measurements done`;
+    stateEl.style.color = 'var(--accent-green)';
+  });
+}
