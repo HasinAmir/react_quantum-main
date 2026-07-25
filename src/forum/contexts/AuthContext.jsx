@@ -85,7 +85,7 @@ export function AuthProvider({ children }) {
       id: user.uid,
       name: profileData.name,
       email: user.email,
-      avatar: user.photoURL || '',
+      avatar: profileData.avatar !== undefined ? profileData.avatar : (user.photoURL || ''),
       role: profileData.role,
       experience: profileData.experience,
       bio: profileData.bio,

@@ -44,6 +44,29 @@ export default function PostCard({ post }) {
 
         <p className="post-card__body">{post.body.length > 200 ? post.body.slice(0, 200) + '…' : post.body}</p>
 
+        {post.media && post.media.length > 0 && (
+          <div className="post-card__media-strip">
+            <div className="post-card__media-thumb">
+              {post.media[0].type === 'image' ? (
+                <img src={post.media[0].data} alt="" className="post-card__media-thumb-img" loading="lazy" />
+              ) : (
+                <div className="post-card__media-thumb-video">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </div>
+              )}
+            </div>
+            {post.media.length > 1 && (
+              <span className="post-card__media-count">+{post.media.length - 1} more</span>
+            )}
+            <span className="post-card__media-label">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+              </svg>
+              {post.media.length} {post.media.length === 1 ? 'attachment' : 'attachments'}
+            </span>
+          </div>
+        )}
+
         <div className="post-card__footer">
           <div className="post-card__author">
             {author.avatar ? (

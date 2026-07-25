@@ -20,12 +20,34 @@ function timeAgo(dateStr) {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
+function buildCommentTree(flatComments) {
+  const commentMap = {};
+  const rootComments = [];
+
+  flatComments.forEach(comment => {
+    commentMap[comment.id] = { ...comment, replies: [] };
+  });
+
+  flatComments.forEach(comment => {
+    if (comment.parent_id) {
+      if (commentMap[comment.parent_id]) {
+         commentMap[comment.parent_id].replies.push(commentMap[comment.id]);
+      }
+    } else {
+      rootComments.push(commentMap[comment.id]);
+    }
+  });
+
+  return rootComments;
+}
+
 export default function PostDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, profile, isAuthenticated } = useAuth();
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
+  const [reactions, setReactions] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -48,14 +70,31 @@ export default function PostDetail() {
   }
 
   async function fetchComments() {
-    const { data, error } = await supabase
-      .from('comments')
-      .select('*, users (*)')
-      .eq('post_id', id)
-      .order('is_best_answer', { ascending: false })
-      .order('created_at', { ascending: true });
-    if (error) { console.error('Error fetching comments:', error); }
-    else { setComments(data || []); }
+    try {
+      const { data: commentsData, error } = await supabase
+        .from('comments')
+        .select('*, users (*)')
+        .eq('post_id', id)
+        .order('is_best_answer', { ascending: false })
+        .order('created_at', { ascending: true });
+      
+      if (error) { 
+        console.error('Error fetching comments:', error); 
+      }
+      
+      setComments(commentsData || []);
+
+      // Fetch reactions separately so a failure here doesn't block comments
+      try {
+        const { data: reactionsData } = await supabase.from('comment_reactions').select('*');
+        setReactions(reactionsData || []);
+      } catch (reactionsErr) {
+        console.error('Error fetching reactions:', reactionsErr);
+      }
+    } catch (err) {
+      console.error('Error in fetchComments:', err);
+      setComments([]);
+    }
   }
 
   async function handleSubmitComment(e) {
@@ -77,6 +116,32 @@ export default function PostDetail() {
       .update({ is_best_answer: true }).eq('id', commentId);
     if (error) { console.error('Error marking best answer:', error); }
     else { await fetchComments(); }
+  }
+
+  async function handleReply(parentId, text) {
+    if (!text.trim() || !isAuthenticated) return;
+    const { error } = await supabase.from('comments').insert({
+      post_id: id, user_id: user.uid, body: text.trim(), parent_id: parentId
+    });
+    if (error) { console.error('Error posting reply:', error); }
+    else { await fetchComments(); }
+  }
+
+  async function handleReact(commentId, reactionType) {
+    if (!isAuthenticated) return;
+    
+    const existingReaction = reactions.find(r => r.comment_id === commentId && r.user_id === user.uid && r.type === reactionType);
+    
+    if (existingReaction) {
+      await supabase.from('comment_reactions').delete().eq('id', existingReaction.id);
+    } else {
+      await supabase.from('comment_reactions').insert({
+        comment_id: commentId, user_id: user.uid, type: reactionType
+      });
+    }
+    
+    const { data: reactionsData } = await supabase.from('comment_reactions').select('*');
+    setReactions(reactionsData || []);
   }
 
   if (loading) {
@@ -113,6 +178,21 @@ export default function PostDetail() {
           </div>
           <h1 className="post-detail__title">{post.title}</h1>
           <div className="post-detail__body">{post.body}</div>
+          {post.media && post.media.length > 0 && (
+            <div className="post-detail__media-gallery">
+              {post.media.map((item, idx) => (
+                <div key={idx} className={`post-detail__media-item ${post.media.length === 1 ? 'post-detail__media-item--single' : ''}`}>
+                  {item.type === 'image' ? (
+                    <img src={item.data} alt={item.name || 'Post image'} className="post-detail__media-img" loading="lazy" />
+                  ) : (
+                    <video src={item.data} controls className="post-detail__media-video" preload="metadata">
+                      Your browser does not support the video tag.
+                    </video>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
           <div className="post-detail__author">
             {author.avatar ? (
               <img src={author.avatar} alt="" className="post-detail__author-avatar" referrerPolicy="no-referrer" />
@@ -144,8 +224,8 @@ export default function PostDetail() {
         {isAuthenticated ? (
           <form onSubmit={handleSubmitComment} className="comment-form">
             <div className="comment-form__input-row">
-              {user.photoURL ? (
-                <img src={user.photoURL} alt="" className="comment-form__avatar" referrerPolicy="no-referrer" />
+              {(profile?.avatar || user.photoURL) ? (
+                <img src={profile?.avatar || user.photoURL} alt="" className="comment-form__avatar" referrerPolicy="no-referrer" />
               ) : (
                 <div className="comment-form__avatar comment-form__avatar--placeholder">
                   {(profile?.name || '?')[0].toUpperCase()}
@@ -169,10 +249,13 @@ export default function PostDetail() {
           {comments.length === 0 ? (
             <div className="post-detail__no-comments"><p>No comments yet. Be the first to respond!</p></div>
           ) : (
-            comments.map(c => (
+            buildCommentTree(comments).map(c => (
               <Comment key={c.id} comment={c} postType={post.type}
-                postAuthorId={post.user_id} currentUser={profile}
-                onMarkBestAnswer={handleMarkBestAnswer} />
+                postAuthorId={post.user_id} currentUser={profile || user}
+                onMarkBestAnswer={handleMarkBestAnswer}
+                allReactions={reactions}
+                onReply={handleReply}
+                onReact={handleReact} />
             ))
           )}
         </div>

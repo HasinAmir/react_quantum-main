@@ -23,6 +23,7 @@ CREATE TABLE posts (
   title TEXT NOT NULL,
   body TEXT NOT NULL,
   upvotes INTEGER DEFAULT 0,
+  media JSONB DEFAULT '[]',              -- Array of {name, type, data} media attachments
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

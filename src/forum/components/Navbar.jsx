@@ -51,8 +51,8 @@ export default function Navbar() {
           ) : isAuthenticated ? (
             <div className="forum-navbar__user">
               <Link to="/profile" className="forum-navbar__avatar-link" title="Profile Settings">
-                {user.photoURL ? (
-                  <img src={user.photoURL} alt="" className="forum-navbar__avatar" referrerPolicy="no-referrer" />
+                {(profile?.avatar || user.photoURL) ? (
+                  <img src={profile?.avatar || user.photoURL} alt="" className="forum-navbar__avatar" referrerPolicy="no-referrer" />
                 ) : (
                   <div className="forum-navbar__avatar forum-navbar__avatar--placeholder">
                     {(profile?.name || user.displayName || '?')[0].toUpperCase()}

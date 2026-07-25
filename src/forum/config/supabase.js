@@ -6,15 +6,21 @@ const DB_KEY = 'quantum_forum_mock_db';
 // Initialize mock DB
 function getDB() {
   const raw = localStorage.getItem(DB_KEY);
-  if (raw) return JSON.parse(raw);
-  const initial = {
+  const defaults = {
     users: [],
     posts: [],
     comments: [],
-    votes: []
+    votes: [],
+    comment_reactions: []
   };
-  localStorage.setItem(DB_KEY, JSON.stringify(initial));
-  return initial;
+  if (raw) {
+    const parsed = JSON.parse(raw);
+    // Ensure all expected tables exist (handles schema evolution)
+    const db = { ...defaults, ...parsed };
+    return db;
+  }
+  localStorage.setItem(DB_KEY, JSON.stringify(defaults));
+  return defaults;
 }
 
 function saveDB(db) {
@@ -169,7 +175,10 @@ class MockQuery {
           ...this.payload
         };
         const conflictKey = this.onConflict || 'id';
-        const existingIndex = this.db[this.table].findIndex(item => item[conflictKey] === record[conflictKey]);
+        const keys = conflictKey.split(',').map(k => k.trim());
+        const existingIndex = this.db[this.table].findIndex(item => {
+          return keys.every(key => item[key] !== undefined && item[key] === record[key]);
+        });
         
         if (existingIndex >= 0) {
           this.db[this.table][existingIndex] = { ...this.db[this.table][existingIndex], ...record };
