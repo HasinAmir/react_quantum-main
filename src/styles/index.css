@@ -262,6 +262,15 @@ input[type="range"]::-moz-range-thumb {
   padding: 4px 10px; font-family: var(--font-mono); font-size: 12px;
   background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3);
   border-radius: var(--radius-sm); color: var(--accent-purple);
+  display: inline-block;
+}
+.gate-history-item.pop-in {
+  animation: chipPopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes chipPopIn {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 /* ===== GATES SECTION ===== */
@@ -353,9 +362,52 @@ input[type="range"]::-moz-range-thumb {
 }
 .ent-qubit.qubit-b:hover::before { border-color: var(--accent-purple); }
 .ent-qubit.measured { animation: pulse 0.5s ease-out; }
-.ent-link {
-  font-size: 28px; color: var(--text-muted);
-  animation: linkPulse 2s ease-in-out infinite;
+/* Superposition Glow Ring Animation for Entangled Qubits */
+.superposition-wrap {
+  position: relative; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; pointer-events: none;
+}
+.superposition-ring-svg {
+  position: absolute; inset: -8px;
+  width: calc(100% + 16px); height: calc(100% + 16px);
+  overflow: visible; pointer-events: none;
+  animation: superpositionRotate 10s linear infinite;
+}
+.superposition-ring-path {
+  fill: none; stroke: var(--accent-cyan); stroke-width: 2.5;
+  stroke-dasharray: 14 10;
+  animation: superpositionPulse 2.5s ease-in-out infinite;
+}
+.qubit-b .superposition-ring-path { stroke: var(--accent-purple); }
+.superposition-text {
+  font-family: var(--font-mono); font-size: 22px; font-weight: 700;
+  color: var(--text-primary); text-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+  animation: superpositionGlow 2.5s ease-in-out infinite;
+}
+.qubit-b .superposition-text { text-shadow: 0 0 12px rgba(139, 92, 246, 0.6); }
+
+@keyframes superpositionRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes superpositionPulse {
+  0%, 100% { opacity: 0.4; stroke-width: 2; }
+  50% { opacity: 1; stroke-width: 3.5; }
+}
+@keyframes superpositionGlow {
+  0%, 100% { opacity: 0.6; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+.ent-link-wrap {
+  width: 140px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+}
+.ent-link-svg { width: 100%; height: 100%; overflow: visible; }
+.ent-link-line { animation: entDash 1.2s linear infinite; }
+@keyframes entDash {
+  to { stroke-dashoffset: -28; }
 }
 .ent-controls { display: flex; flex-direction: column; gap: 20px; }
 .bell-states { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

@@ -193,7 +193,7 @@ export default function PostDetail() {
               ))}
             </div>
           )}
-          <div className="post-detail__author">
+          <Link to={`/user/${author.id}`} className="post-detail__author" style={{ textDecoration: 'none' }}>
             {author.avatar ? (
               <img src={author.avatar} alt="" className="post-detail__author-avatar" referrerPolicy="no-referrer" />
             ) : (
@@ -211,7 +211,7 @@ export default function PostDetail() {
                 {author.role && ` · ${author.role.charAt(0).toUpperCase() + author.role.slice(1)}`}
               </span>
             </div>
-          </div>
+          </Link>
         </div>
       </article>
 

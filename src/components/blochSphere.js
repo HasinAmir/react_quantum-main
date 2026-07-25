@@ -71,19 +71,21 @@ export function initBlochSphere() {
   const pv1 = document.getElementById('bloch-pv1');
 
   function update() {
-    const state = stateFromAngles(theta, phi);
-    const probs = probabilities(state);
+    drawBlochSphere(ctx, 200, 200, 150, theta, phi, {
+      onFrame: (curTheta, curPhi) => {
+        const curState = stateFromAngles(curTheta, curPhi);
+        const curProbs = probabilities(curState);
 
-    drawBlochSphere(ctx, 200, 200, 150, theta, phi);
+        thetaVal.textContent = `${(curTheta / Math.PI).toFixed(2)}π`;
+        phiVal.textContent = `${(curPhi / Math.PI).toFixed(2)}π`;
+        stateEl.textContent = `|ψ⟩ = ${formatState(curState)}`;
 
-    thetaVal.textContent = `${(theta / Math.PI).toFixed(2)}π`;
-    phiVal.textContent = `${(phi / Math.PI).toFixed(2)}π`;
-    stateEl.textContent = `|ψ⟩ = ${formatState(state)}`;
-
-    p0.style.height = `${probs[0] * 100}%`;
-    p1.style.height = `${probs[1] * 100}%`;
-    pv0.textContent = `${(probs[0] * 100).toFixed(1)}%`;
-    pv1.textContent = `${(probs[1] * 100).toFixed(1)}%`;
+        p0.style.height = `${curProbs[0] * 100}%`;
+        p1.style.height = `${curProbs[1] * 100}%`;
+        pv0.textContent = `${(curProbs[0] * 100).toFixed(1)}%`;
+        pv1.textContent = `${(curProbs[1] * 100).toFixed(1)}%`;
+      }
+    });
   }
 
   thetaSlider.addEventListener('input', (e) => { theta = parseFloat(e.target.value); update(); });

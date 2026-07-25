@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, googleProvider, signInWithPopup, signOut } from '../config/firebase.js';
+import { auth } from '../config/firebase.js';
+import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { supabase } from '../config/supabase.js';
+
+const googleProvider = new GoogleAuthProvider();
 
 const AuthContext = createContext(null);
 
@@ -16,36 +19,64 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
 
-  // Initialize mock auth state from localStorage
+  // Listen to Firebase Auth state changes
   useEffect(() => {
-    const checkAuth = async () => {
-      const savedUser = localStorage.getItem('mock_auth_user');
-      if (savedUser) {
-        const parsedUser = JSON.parse(savedUser);
-        setUser(parsedUser);
-        await fetchProfile(parsedUser.uid);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        await fetchProfile(currentUser);
       } else {
+        setUser(null);
         setProfile(null);
       }
       setLoading(false);
-    };
-    checkAuth();
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  // Fetch user profile from Supabase
-  async function fetchProfile(uid) {
+  // Fetch user profile from Supabase or create if new
+  async function fetchProfile(currentUser) {
     setProfileLoading(true);
     try {
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('id', uid)
+        .eq('id', currentUser.uid)
         .single();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching profile:', error);
       }
-      setProfile(data || null);
+      
+      if (data) {
+        setProfile(data);
+      } else {
+        // Auto-create profile for first-time login
+        const newProfile = {
+          id: currentUser.uid,
+          name: currentUser.displayName || 'New User',
+          email: currentUser.email || '',
+          avatar: currentUser.photoURL || '',
+          role: 'student',
+          experience: 'beginner',
+          bio: '',
+          created_at: new Date().toISOString()
+        };
+        
+        const { data: createdData, error: createError } = await supabase
+          .from('users')
+          .upsert(newProfile, { onConflict: 'id' })
+          .select()
+          .single();
+          
+        if (createError) {
+          console.error('Error auto-creating profile:', createError);
+          setProfile(null);
+        } else {
+          setProfile(createdData);
+        }
+      }
     } catch (err) {
       console.error('Profile fetch failed:', err);
       setProfile(null);
@@ -53,15 +84,14 @@ export function AuthProvider({ children }) {
     setProfileLoading(false);
   }
 
-  // Sign in with Google (Mocked)
+  // Sign in with Google
   async function handleSignIn() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      setUser(result.user);
-      await fetchProfile(result.user.uid);
       return result.user;
     } catch (err) {
       console.error('Sign in failed:', err);
+      alert(`Sign in error: ${err.message}`);
       return null;
     }
   }
@@ -109,7 +139,7 @@ export function AuthProvider({ children }) {
 
   // Refresh profile from Supabase
   async function refreshProfile() {
-    if (user) await fetchProfile(user.uid);
+    if (user) await fetchProfile(user);
   }
 
   const value = {

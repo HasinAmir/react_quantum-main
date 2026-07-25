@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import EducatorBadge from './EducatorBadge.jsx';
 
 function timeAgo(dateStr) {
@@ -76,7 +77,7 @@ export default function Comment({
           </div>
         )}
         <div className="comment__header">
-          <div className="comment__author">
+          <Link to={`/user/${author.id}`} className="comment__author" style={{ textDecoration: 'none' }}>
             {author.avatar ? (
               <img src={author.avatar} alt="" className="comment__avatar" referrerPolicy="no-referrer" />
             ) : (
@@ -87,7 +88,7 @@ export default function Comment({
             <span className="comment__author-name">{author.name || 'Anonymous'}</span>
             {author.role === 'educator' && <EducatorBadge />}
             <span className="comment__time">{timeAgo(comment.created_at)}</span>
-          </div>
+          </Link>
           {canMarkBest && (
             <button className="comment__mark-best" onClick={() => onMarkBestAnswer(comment.id)} title="Mark as Best Answer">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>

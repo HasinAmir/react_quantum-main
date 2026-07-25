@@ -74,23 +74,30 @@ export function initGatesSimulator() {
   const historyEl = document.getElementById('gate-history');
 
   function update() {
-    const probs = probabilities(state);
     const angles = anglesFromState(state);
 
-    drawBlochSphere(ctx, 200, 200, 150, angles.theta, angles.phi, { glowColor: '#8b5cf6' });
-
-    stateEl.textContent = `|ψ⟩ = ${formatState(state)}`;
-    p0.style.height = `${probs[0] * 100}%`;
-    p1.style.height = `${probs[1] * 100}%`;
-    pv0.textContent = `${(probs[0] * 100).toFixed(1)}%`;
-    pv1.textContent = `${(probs[1] * 100).toFixed(1)}%`;
+    drawBlochSphere(ctx, 200, 200, 150, angles.theta, angles.phi, {
+      glowColor: '#8b5cf6',
+      onFrame: (curTheta, curPhi) => {
+        const curState = stateFromAngles(curTheta, curPhi);
+        const curProbs = probabilities(curState);
+        stateEl.textContent = `|ψ⟩ = ${formatState(curState)}`;
+        p0.style.height = `${curProbs[0] * 100}%`;
+        p1.style.height = `${curProbs[1] * 100}%`;
+        pv0.textContent = `${(curProbs[0] * 100).toFixed(1)}%`;
+        pv1.textContent = `${(curProbs[1] * 100).toFixed(1)}%`;
+      }
+    });
   }
 
   function updateHistory() {
     if (history.length === 0) {
       historyEl.innerHTML = '<span style="color:var(--text-muted);font-size:13px;">No gates applied yet</span>';
     } else {
-      historyEl.innerHTML = history.map(g => `<span class="gate-history-item">${g}</span>`).join('');
+      historyEl.innerHTML = history.map((g, idx) => {
+        const isNewest = idx === history.length - 1;
+        return `<span class="gate-history-item ${isNewest ? 'pop-in' : ''}">${g}</span>`;
+      }).join('');
     }
   }
 
@@ -118,16 +125,22 @@ export function initGatesSimulator() {
   // Gate buttons
   container.querySelectorAll('[data-gate]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const gate = GATES[btn.dataset.gate];
+      const gateName = btn.dataset.gate;
+      const gate = GATES[gateName];
       state = applyGate(gate, state);
-      history.push(btn.dataset.gate);
+      history.push(gateName);
       updateHistory();
       update();
 
-      // Flash animation
+      // Flash animation synced with 350ms vector animation
+      btn.style.transition = 'transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.35s cubic-bezier(0.25, 1, 0.5, 1)';
       btn.style.transform = 'scale(1.15)';
-      btn.style.boxShadow = `0 0 20px ${gate.color}50`;
-      setTimeout(() => { btn.style.transform = ''; btn.style.boxShadow = ''; }, 200);
+      btn.style.boxShadow = `0 0 24px ${gate.color || '#8b5cf6'}80`;
+
+      setTimeout(() => {
+        btn.style.transform = '';
+        btn.style.boxShadow = '';
+      }, 350);
     });
   });
 

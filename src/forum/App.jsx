@@ -6,6 +6,7 @@ import PostFeed from './components/PostFeed.jsx';
 import PostDetail from './components/PostDetail.jsx';
 import CreatePost from './components/CreatePost.jsx';
 import ProfileSetup from './components/ProfileSetup.jsx';
+import UserProfile from './components/UserProfile.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
                   }
                 />
                 <Route path="/profile" element={<ProfileSetup />} />
+                <Route path="/user/:userId" element={<UserProfile />} />
               </Routes>
             </div>
           </main>
